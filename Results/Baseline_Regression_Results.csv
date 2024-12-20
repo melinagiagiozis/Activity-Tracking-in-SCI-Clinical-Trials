@@ -1,0 +1,9 @@
+Metric,Value
+Slope (kcal/day),0.09
+Intercept (kcal/day),129.39
+R-squared,0.046
+95% CI Lower (Slope),-0.01
+95% CI Upper (Slope),0.19
+t-statistic,1.79
+p-value,0.078
+Degrees of Freedom (df),67.0
