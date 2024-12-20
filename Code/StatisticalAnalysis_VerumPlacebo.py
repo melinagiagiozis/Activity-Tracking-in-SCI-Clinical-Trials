@@ -1,10 +1,10 @@
 import os
 import random
+import warnings
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import statsmodels.formula.api as smf
-import warnings
 from statsmodels.tools.sm_exceptions import ConvergenceWarning
 
 
