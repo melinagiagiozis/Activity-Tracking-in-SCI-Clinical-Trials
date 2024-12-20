@@ -4,6 +4,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import statsmodels.formula.api as smf
+import warnings
+from statsmodels.tools.sm_exceptions import ConvergenceWarning
 
 
 # Printing
@@ -154,6 +156,8 @@ data[['Participant_ID', 'First_Measurement', 'First_Measurement_Week']].drop_dup
 number_of_measurements = energy_expenditure.set_index('Participant_ID').notna().sum(axis=1).reset_index()
 number_of_measurements.columns = ['Participant_ID', 'Measurement_Count']
 data = pd.merge(data, number_of_measurements, on='Participant_ID', how='left')
+
+warnings.simplefilter("ignore", ConvergenceWarning)
 
 # Fit the mixed-effects model (with site and age as effects)
 model = smf.mixedlm('Energy_Expenditure ~ Week * Treatment_Group + First_Measurement + Site'
