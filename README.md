@@ -16,7 +16,7 @@ Conclusion: Unobtrusive, sensor-based activity measurements provide complementar
 
 Questions or comments related to this repository or the manuscript:
 
-📧 Melina Giagiozis
+📧 Melina Giagiozis (Melina.Giagiozis@balgrist.ch)
 
 ## Funding
 
