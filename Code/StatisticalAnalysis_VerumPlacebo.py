@@ -210,6 +210,15 @@ if print_results:
 # Limit to study duration (30 weeks)
 data = intensity_data.iloc[:, :33]
 
+# Separate first two columns
+first_two_columns = data.iloc[:, :2]  # Select first two columns
+
+# Convert minuites to percentage of the day
+converted_data = data.iloc[:, 2:].astype(float).apply(lambda x: (x / 1440) * 100)
+
+# Recombine the first two columns with the converted data
+data = pd.concat([first_two_columns, converted_data], axis=1)
+
 # Intensities: Sedentary activities (SED), Light Physical Activity (LPA (MPA), Vigorous Physical Activity (VPA)
 intensity_levels = ['REST', 'SED', 'LPA', 'MPA', 'VPA']
 
@@ -257,8 +266,8 @@ colors = {
     'LPA': cmap(0.2),
     'MPA': cmap(0.4),
     'VPA': cmap(0.6),
-    'REST': cmap(0.8),
-    'SED': cmap(1)
+    'SED': cmap(0.8),
+    'REST': cmap(1)
 }
 
 for intensity in avg_slopes:
@@ -281,12 +290,12 @@ for intensity in avg_slopes:
 ax = plt.gca()
 ax.spines[['right', 'top']].set_visible(False)
 plt.xlabel('Weeks since injury', fontsize=22)
-plt.ylabel('Time [min/d]', fontsize=22)
+plt.ylabel('Time [% of day]', fontsize=22)
 plt.xticks(fontsize=18)
 plt.yticks(fontsize=18)
 plt.legend(fontsize=18, loc='upper left')
 plt.tight_layout(pad=2.0)
-plt.ylim(-5, 1505)
+plt.ylim(-5, 105)
 plt.xlim(-1, 31)
 plt.grid()
 plt.savefig(directory + '/Figures/Intensity_Trends.png', dpi=300)
@@ -365,11 +374,11 @@ plt.grid()
 ax = plt.gca()
 ax.spines[['right', 'top']].set_visible(False)
 plt.xlabel('Weeks since injury', fontsize=22)
-plt.ylabel('Time [min/d]', fontsize=22)
+plt.ylabel('Time [% of day]', fontsize=22)
 plt.xticks(fontsize=18)
 plt.yticks(fontsize=18)
 plt.grid()
-plt.ylim(-5, 1505)
+plt.ylim(-5, 105)
 plt.xlim(-1, 31)
 plt.tight_layout(pad=2.0)
 plt.savefig(directory + '/Figures/Intensities_VerumPlacebo.png', dpi=300)
