@@ -127,12 +127,6 @@ data = pd.merge(data, clinical_data[['Participant_ID', 'Age_at_Injury', 'Sex', '
 # Correct for sex
 data['Sex'] = data['Sex'].map({'F': 0, 'M': 1})
 
-# Feed backward to correct for baseline
-energy_expenditure_temp = energy_expenditure.copy()
-energy_expenditure_temp = energy_expenditure_temp.iloc[:, 1:].fillna(method='bfill', axis=1)
-energy_expenditure_temp['Participant_ID'] = energy_expenditure['Participant_ID']
-energy_expenditure_temp['First_Measurement'] = energy_expenditure_temp.iloc[:, 1]
-
 # Create a function that returns the energy expenditure and week of the first measurement
 def first_measurement(row):
     measurement = row.dropna()
@@ -147,9 +141,6 @@ energy_expenditure_temp = energy_expenditure.copy()
 energy_expenditure_temp[['First_Measurement', 'First_Measurement_Week']] = energy_expenditure_temp.iloc[:, 1:].apply(
     first_measurement, axis=1, result_type='expand'
 )
-
-# Add 'Participant_ID'
-energy_expenditure_temp['Participant_ID'] = energy_expenditure['Participant_ID']
 
 # Map the first measurement and week of the first measurement to the data dataframe
 data['First_Measurement'] = data['Participant_ID'].map(energy_expenditure_temp.set_index('Participant_ID')['First_Measurement'])
@@ -213,7 +204,7 @@ data = intensity_data.iloc[:, :33]
 # Separate first two columns
 first_two_columns = data.iloc[:, :2]  # Select first two columns
 
-# Convert minuites to percentage of the day
+# Convert minutes to percentage of the day
 converted_data = data.iloc[:, 2:].astype(float).apply(lambda x: (x / 1440) * 100)
 
 # Recombine the first two columns with the converted data
@@ -404,8 +395,37 @@ data['Group'] = data['Participant_ID'].apply(lambda x: 'Placebo' if x in placebo
 # Drop rows with missing intensity minutes
 data = data.dropna(axis=0)
 
-# Aggregate data to get the average minutes per intensity level for each participant
-average_data = data.groupby(['Participant_ID', 'Parameter', 'Group'])['Minutes'].mean().reset_index()
+# Merge with clinical data to include additional variables
+data = pd.merge(data, clinical_data[['Participant_ID', 'Age_at_Injury', 'Sex', 'Site']], 
+                on='Participant_ID', how='left')
+
+# Convert Sex to numeric (0 = Female, 1 = Male)
+data['Sex'] = data['Sex'].map({'F': 0, 'M': 1})
+
+# Apply function to get first measurement and week
+intensity_temp = intensity_data.copy()
+intensity_temp[['First_Measurement', 'First_Measurement_Week']] = intensity_temp.iloc[:, 2:].apply(
+    first_measurement, axis=1, result_type='expand'
+)
+
+# Map first measurement and first measurement week to the data dataframe
+data['First_Measurement'] = data.set_index(['Participant_ID', 'Parameter']).index.map(
+    intensity_temp.drop_duplicates(subset=['Participant_ID', 'Parameter'])
+    .set_index(['Participant_ID', 'Parameter'])['First_Measurement']
+)
+
+data['First_Measurement_Week'] = data.set_index(['Participant_ID', 'Parameter']).index.map(
+    intensity_temp.drop_duplicates(subset=['Participant_ID', 'Parameter'])
+    .set_index(['Participant_ID', 'Parameter'])['First_Measurement_Week']
+)
+
+# Ensure only one baseline per participant
+data[['Participant_ID', 'First_Measurement', 'First_Measurement_Week']].drop_duplicates()
+
+# Correct for number of measurements
+number_of_measurements = intensity_data.set_index('Participant_ID').notna().sum(axis=1).reset_index()
+number_of_measurements.columns = ['Participant_ID', 'Measurement_Count']
+data = pd.merge(data, number_of_measurements, on='Participant_ID', how='left')
 
 # Initialize a dictionary to store results for each intensity level
 results_dict = {}
@@ -413,15 +433,14 @@ results_dict = {}
 # Loop through each intensity level
 for intensity in intensity_levels:
     # Filter the data for the current intensity level
-    intensity_data = average_data[average_data['Parameter'] == intensity]
+    intensity_data = data[data['Parameter'] == intensity]
     
-    # Fit a mixed-effects model for the average minutes at this intensity level
+    # Fit a mixed-effects model including all variables
     model = smf.mixedlm(
-        # Model only includes Group as a fixed effect
-        'Minutes ~ Group',
+        'Minutes ~ Week * Group + First_Measurement + Site + Age_at_Injury + Sex + Measurement_Count + First_Measurement_Week',
         data=intensity_data,
-        # Random effect for each participant
-        groups=intensity_data['Participant_ID']
+        groups=intensity_data['Participant_ID'],
+        re_formula="~Week"
     )
     result = model.fit()
     
@@ -439,17 +458,17 @@ for intensity in intensity_levels:
     summary_csv_path = os.path.join(directory, f'Results/MixedModel_Intensity_VerumPlacebo_Summary_{intensity}.csv')
     summary_df.to_csv(summary_csv_path, index=False)
 
-    if print_results:
-        print(f'Results for {intensity} intensity level (average minutes):')
-        print(result.summary())
-        print(f'Model results saved to {summary_csv_path}')
-        print("\n")
-
-# For later analysis of UEMS
-data_all_participants = data
-
-if print_results:
-    print('--------------------------')
-    print('Overall interaction effect')
+    # if print_results:
+    print(f'Results for {intensity} intensity level:')
     print(result.summary())
-    print('--------------------------')
+    print(f'Model results saved to {summary_csv_path}')
+    print("\n")
+
+    # Store the final dataset for further analysis
+    data_all_participants = data
+
+    if print_results:
+        print('--------------------------')
+        print('Overall interaction effect')
+        print(result.summary())
+        print('--------------------------')

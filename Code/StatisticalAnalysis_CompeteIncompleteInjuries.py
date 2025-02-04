@@ -192,12 +192,6 @@ for group, group_name in zip(completeness_groups, completeness_groups_names):
     # Correct for sex
     data['Sex'] = data['Sex'].map({'F': 0, 'M': 1})
 
-    # Feed backward to correct for baseline
-    energy_expenditure_temp = energy_expenditure.copy()
-    energy_expenditure_temp = energy_expenditure_temp.iloc[:, 1:].fillna(method='bfill', axis=1)
-    energy_expenditure_temp['Participant_ID'] = energy_expenditure['Participant_ID']
-    energy_expenditure_temp['First_Measurement'] = energy_expenditure_temp.iloc[:, 1]
-
     # Create a function that returns the energy expenditure and week of the first measurement
     def first_measurement(row):
         measurement = row.dropna()
@@ -212,9 +206,6 @@ for group, group_name in zip(completeness_groups, completeness_groups_names):
     energy_expenditure_temp[['First_Measurement', 'First_Measurement_Week']] = energy_expenditure_temp.iloc[:, 1:].apply(
         first_measurement, axis=1, result_type='expand'
     )
-
-    # Add 'Participant_ID' back to the temp dataframe for merging
-    energy_expenditure_temp['Participant_ID'] = energy_expenditure['Participant_ID']
 
     # Map the energy expenditure and week of the first measurement to the data dataframe
     data['First_Measurement'] = data['Participant_ID'].map(energy_expenditure_temp.set_index('Participant_ID')['First_Measurement'])
