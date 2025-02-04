@@ -384,7 +384,7 @@ plt.close()
 # Reshape intensity data to long format for each intensity level
 data = pd.melt(data, id_vars=['Participant_ID', 'Parameter'],
                value_vars=['Week ' + str(i) for i in range(30)],
-               var_name='Week', value_name='Minutes')
+               var_name='Week', value_name='Percentage')
 
 # Convert 'Week' to a numeric week number
 data['Week'] = data['Week'].str.extract('(\d+)').astype(int)
@@ -392,7 +392,7 @@ data['Week'] = data['Week'].str.extract('(\d+)').astype(int)
 # Add 'Group' column to indicate placebo or verum based on Participant_ID
 data['Group'] = data['Participant_ID'].apply(lambda x: 'Placebo' if x in placebo else 'Verum')
 
-# Drop rows with missing intensity minutes
+# Drop rows with missing intensity
 data = data.dropna(axis=0)
 
 # Merge with clinical data to include additional variables
@@ -437,7 +437,7 @@ for intensity in intensity_levels:
     
     # Fit a mixed-effects model including all variables
     model = smf.mixedlm(
-        'Minutes ~ Week * Group + First_Measurement + Site + Age_at_Injury + Sex + Measurement_Count + First_Measurement_Week',
+        'Percentage ~ Week * Group + First_Measurement + Site + Age_at_Injury + Sex + Measurement_Count + First_Measurement_Week',
         data=intensity_data,
         groups=intensity_data['Participant_ID'],
         re_formula="~Week"
