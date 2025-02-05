@@ -1,11 +1,11 @@
-# Activity-Tracking-in-SCI-Clinical-Trials
+# Evaluating spinal cord injury trials using wearable sensors for daily activity monitoring
 The aim of this project is to evaluate the effectiveness of continuous, unobtrusive sensor-derived activity metrics as a method to monitor physical activity and recovery in patients with acute traumatic cervical spinal cord injury (SCI).
 
 ## Summary
 
 🔍 Authors:
 
-Melina Giagiozis, Irina Lerch, Anita D. Linke, Catherine R. Jutzeler, László Demkó, NISCI study group, Armin Curt
+Authors: Melina Giagiozis, Irina Lerch, Anita D. Linke, Catherine R. Jutzeler, Rüdiger Rupp, Rainer Abel, Jesús Benito-Penalva, Josina Waldmann, Doris Maier, Björn Zörner, Jiri Kriz, Andreas Badke, Norbert Weidner, László Demkó, Armin Curt on behalf of the Nogo Inhibition in Spinal Cord Injury Study Group
 
 📝 Abstract: 
 
