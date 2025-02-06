@@ -3,6 +3,7 @@ import random
 import warnings
 import numpy as np
 import pandas as pd
+import scipy.stats as stats
 from scipy.stats import sem
 import matplotlib.pyplot as plt
 import matplotlib.lines as mlines
@@ -381,94 +382,40 @@ plt.close()
 
 
 
-# Reshape intensity data to long format for each intensity level
-data = pd.melt(data, id_vars=['Participant_ID', 'Parameter'],
-               value_vars=['Week ' + str(i) for i in range(30)],
-               var_name='Week', value_name='Percentage')
+# Initialize storage for regression results
+summary_df = []
 
-# Convert 'Week' to a numeric week number
-data['Week'] = data['Week'].str.extract('(\d+)').astype(int)
-
-# Add 'Group' column to indicate placebo or verum based on Participant_ID
-data['Group'] = data['Participant_ID'].apply(lambda x: 'Placebo' if x in placebo else 'Verum')
-
-# Drop rows with missing intensity
-data = data.dropna(axis=0)
-
-# Merge with clinical data to include additional variables
-data = pd.merge(data, clinical_data[['Participant_ID', 'Age_at_Injury', 'Sex', 'Site']], 
-                on='Participant_ID', how='left')
-
-# Convert Sex to numeric (0 = Female, 1 = Male)
-data['Sex'] = data['Sex'].map({'F': 0, 'M': 1})
-
-# Apply function to get first measurement and week
-intensity_temp = intensity_data.copy()
-intensity_temp[['First_Measurement', 'First_Measurement_Week']] = intensity_temp.iloc[:, 2:].apply(
-    first_measurement, axis=1, result_type='expand'
-)
-
-# Map first measurement and first measurement week to the data dataframe
-data['First_Measurement'] = data.set_index(['Participant_ID', 'Parameter']).index.map(
-    intensity_temp.drop_duplicates(subset=['Participant_ID', 'Parameter'])
-    .set_index(['Participant_ID', 'Parameter'])['First_Measurement']
-)
-
-data['First_Measurement_Week'] = data.set_index(['Participant_ID', 'Parameter']).index.map(
-    intensity_temp.drop_duplicates(subset=['Participant_ID', 'Parameter'])
-    .set_index(['Participant_ID', 'Parameter'])['First_Measurement_Week']
-)
-
-# Ensure only one baseline per participant
-data[['Participant_ID', 'First_Measurement', 'First_Measurement_Week']].drop_duplicates()
-
-# Correct for number of measurements
-number_of_measurements = intensity_data.set_index('Participant_ID').notna().sum(axis=1).reset_index()
-number_of_measurements.columns = ['Participant_ID', 'Measurement_Count']
-data = pd.merge(data, number_of_measurements, on='Participant_ID', how='left')
-
-# Initialize a dictionary to store results for each intensity level
-results_dict = {}
-
-# Loop through each intensity level
+# Compute regression statistics and store results
 for intensity in intensity_levels:
-    # Filter the data for the current intensity level
-    intensity_data = data[data['Parameter'] == intensity]
-    
-    # Fit a mixed-effects model including all variables
-    model = smf.mixedlm(
-        'Percentage ~ Week * Group + First_Measurement + Site + Age_at_Injury + Sex + Measurement_Count + First_Measurement_Week',
-        data=intensity_data,
-        groups=intensity_data['Participant_ID'],
-        re_formula="~Week"
-    )
-    result = model.fit()
-    
-    # Extract relevant statistics into a DataFrame
-    summary_df = pd.DataFrame({
-        'Parameter': result.params.index,
-        'Coefficient': result.params.values,
-        'Standard Error': result.bse.values,
-        'p-value': result.pvalues.values,
-        'Confidence Interval Lower': result.conf_int().iloc[:, 0],
-        'Confidence Interval Upper': result.conf_int().iloc[:, 1]
+    slope = avg_slopes[intensity]
+    intercept = avg_intercepts[intensity]
+    slope_se = std_slopes[intensity] / np.sqrt(len(slopes_all[intensity]))
+    ci_lower, ci_upper = slope - 1.96 * slope_se, slope + 1.96 * slope_se
+    t_score = slope / slope_se
+    p_value = 2 * (1 - stats.norm.cdf(abs(t_score)))
+    df = len(slopes_all[intensity]) - 1
+
+    # Store results
+    summary_df.append({
+        'Intensity': intensity,
+        'Slope (%/week)': np.round(slope, 2),
+        'Intercept (% of day)': np.round(intercept, 2),
+        '95% CI (Slope)': f'[{np.round(ci_lower, 2)}, {np.round(ci_upper, 2)}]',
+        'p-value': '<0.001' if p_value < 0.001 else f'{p_value:.3f}',
+        'df': df
     })
 
-    # Save the DataFrame to a CSV file
-    summary_csv_path = os.path.join(directory, f'Results/MixedModel_Intensity_VerumPlacebo_Summary_{intensity}.csv')
-    summary_df.to_csv(summary_csv_path, index=False)
-
-    # if print_results:
-    print(f'Results for {intensity} intensity level:')
-    print(result.summary())
-    print(f'Model results saved to {summary_csv_path}')
-    print("\n")
-
-    # Store the final dataset for further analysis
-    data_all_participants = data
-
     if print_results:
-        print('--------------------------')
-        print('Overall interaction effect')
-        print(result.summary())
-        print('--------------------------')
+        print(f'Results for {intensity} intensity level:')
+        print(f"Linear Regression Model: t({df}) = {np.round(t_score, decimals=1)}, "
+                    f"slope = {np.round(slope, decimals=1)}, "
+                    f"95% CI [{np.round(ci_lower, decimals=1)}, {np.round(ci_upper, decimals=1)}], "
+                    f"p {'<0.001' if p_value < 0.001 else np.round(p_value, 3)}")
+        print(f'Model results saved to {summary_csv_path}')
+        print("\n")
+
+# Save the DataFrame to a CSV file
+summary_csv_path = os.path.join(directory, f'Results/Regression_Results_Intensity_Trends.csv')
+summary_df = pd.DataFrame(summary_df)
+summary_df.to_csv(summary_csv_path, index=False)
+print('Regression results saved to Regression_Results_Intensity_Trends.csv')

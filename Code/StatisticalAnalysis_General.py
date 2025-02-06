@@ -117,9 +117,9 @@ if all_coefficients:
     
 # Save individual results
 results_df = pd.DataFrame(individual_results)
-output_file = os.path.join(directory, 'Results/Participant_Trends.csv')
+output_file = os.path.join(directory, 'Results/Regression_Results_EE_Trends.csv')
 results_df.to_csv(output_file, index=False)
-print('Individual results saved to Participant_Trends.csv')
+print('Individual results saved to Regression_Results_EE_Trends.csv')
 
 # Finalize plot
 plt.ylabel('Energy Expenditure [kcal/day]', fontsize=14)
@@ -205,9 +205,9 @@ regression_results = {
 results_df = pd.DataFrame(regression_results)
 
 # Save the table to a CSV file
-output_file = os.path.join(directory, 'Results/Baseline_Regression_Results.csv')
+output_file = os.path.join(directory, 'Results/Regression_Results_Baseline_EE.csv')
 results_df.to_csv(output_file, index=False)
-print('Regression results saved to Baseline_Regression_Results.csv')
+print('Regression results saved to Regression_Results_Baseline_EE.csv')
 
 
 
