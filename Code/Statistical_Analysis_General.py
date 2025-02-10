@@ -38,7 +38,6 @@ individual_results = []  # For storing Participant-specific results
 plt.figure(figsize=(10, 6))
 week_numbers = np.arange(len(energy_expenditure.columns) - 1)
 plt.grid(alpha=0.3)
-plt.title('Energy Expenditure Over Time', fontsize=20)
 
 # Collect polynomial coefficients for each row
 for row in range(len(energy_expenditure.iloc[:, 0])):

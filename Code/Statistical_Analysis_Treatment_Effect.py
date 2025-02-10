@@ -101,7 +101,7 @@ plt.xticks(fontsize=14)
 plt.yticks(fontsize=14)
 plt.legend(fontsize=14)
 plt.grid(alpha=0.3)
-plt.savefig(directory + '/Figures/Trends_VerumPlacebo.png', dpi=300)
+plt.savefig(directory + '/Figures/Trends_Treatment_Effect.png', dpi=300)
 plt.close()
 
 
@@ -177,7 +177,7 @@ summary_df = pd.DataFrame({
 })
 
 # Save the DataFrame to a CSV file
-summary_csv_path = os.path.join(directory, 'Results/MixedModel_VerumPlacebo_Summary.csv')
+summary_csv_path = os.path.join(directory, 'Results/MixedModel_Treatment_Effect_Summary.csv')
 summary_df.to_csv(summary_csv_path, index=False)
 
 if print_results:
@@ -373,7 +373,7 @@ plt.grid()
 plt.ylim(-5, 105)
 plt.xlim(-1, 31)
 plt.tight_layout(pad=2.0)
-plt.savefig(directory + '/Figures/Intensities_VerumPlacebo.png', dpi=300)
+plt.savefig(directory + '/Figures/Intensities_Treatment_Effect.png', dpi=300)
 plt.close()
 
 

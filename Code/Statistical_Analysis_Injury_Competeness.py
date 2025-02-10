@@ -104,7 +104,7 @@ plt.legend()
 plt.grid()
 
 # Save the plot
-plt.savefig(directory + '/Figures/Trends_CompleteIncomplete.png', dpi=300)
+plt.savefig(directory + '/Figures/Trends_Injury_Completeness.png', dpi=300)
 plt.close()
 
 
