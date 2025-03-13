@@ -14,6 +14,40 @@ Methods: Wearable inertial sensors were used to collected data from 69 participa
 Results: A significant increase in average daily EE was observed across all participants over the initial 30 weeks after injury (Linear Regression Model: t(65) = 5.8, slope = 21.3, 95% CI [14.1, 28.5], p <0.001). Participants in the verum group exhibited a more pronounced weekly increase in average daily activity levels compared to those in the  placebo group (Linear Mixed-Effects Model: delta EE = 11.7, 95% CI [1.8, 21.7], p = 0.021). While the Upper Extremity Motor Score (UEMS), the primary outcome measures of the trial, did not demonstrate a treatment effect, this metric successfully detected subtle, quantitative differences.
 Conclusion: Unobtrusive, continuous sensor-based activity measurements provide complementary insights by detecting changes in physical and functional capabilities that periodic clinical assessments might overlook. Thus, wearable sensors offer potential for improving the evaluation of clinical studies in individuals with SCI.
 
+## Getting Started
+
+First, clone this project to your local environment.
+
+```sh
+git clone https://github.com/melinagiagiozis/Swimming-Project-SCI.git
+```
+Create a virtual environment with python 3.9.13.
+
+```sh
+conda create --name activity_env python=3.9.13
+conda activate activity_env
+```
+
+Install python dependencies.
+
+```sh
+pip install -r requirements.txt
+```
+
+## Path Setup
+
+The paths for data, results, and figures based on the repo setup.
+
+## Datasets Preparation
+
+Ensure that the simulated datasets is in the `SimulatedData` folder.
+
+## Data Analysis
+
+To perform a general statistical analysis, run `Code/Statistical_Analysis_General.py`.
+To analyze a potential treatment effect, run `Code/Statistical_Analysis_Treatment_Effect.py`.
+To analyze a potential treatment effect stratified by injury completeness, run `Code/Statistical_Analysis_Injury_Completeness.py`.
+
 ## Contact
 
 Questions or comments related to this repository or the manuscript:
