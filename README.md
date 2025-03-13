@@ -19,7 +19,7 @@ Conclusion: Unobtrusive, continuous sensor-based activity measurements provide c
 First, clone this project to your local environment.
 
 ```sh
-git clone https://github.com/melinagiagiozis/Swimming-Project-SCI.git
+git clone https://github.com/melinagiagiozis/Activity-Tracking-in-SCI-Clinical-Trials.git
 ```
 Create a virtual environment with python 3.9.13.
 
