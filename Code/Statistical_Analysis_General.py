@@ -137,7 +137,7 @@ plt.close()
 
 # Prepare energy expenditure data
 energy_expenditure_temp = energy_expenditure.copy()
-energy_expenditure_temp = energy_expenditure_temp.iloc[:, 1:].fillna(method='bfill', axis=1)
+energy_expenditure_temp = energy_expenditure_temp.iloc[:, 1:].bfill(axis=1)
 
 # Extract baseline EE and future EE averages
 baseline_ee = energy_expenditure_temp.iloc[:, 1]  # First EE measurement after ID column
@@ -245,7 +245,7 @@ for Participant in energy_expenditure['Participant_ID']:
         score_value = row[score]
         filled_clinical_data.loc[filled_clinical_data[test_date] == week, score] = score_value
 
-    filled_clinical_data[score].ffill(inplace=True)
+    filled_clinical_data.update(filled_clinical_data.ffill())
 
     # Energy expenditure
     energy_expenditure_Participant = energy_expenditure[energy_expenditure['Participant_ID'] == Participant]
@@ -254,7 +254,7 @@ for Participant in energy_expenditure['Participant_ID']:
     week_row = {'Participant_ID': 'Week'}
     for i in range(54):
         week_row[f'Week {i}'] = i
-    energy_expenditure_Participant = energy_expenditure_Participant.append(week_row, ignore_index=True)
+    energy_expenditure_Participant = pd.concat([energy_expenditure_Participant, pd.DataFrame([week_row])], ignore_index=True)
     
     new_row = {'Participant_ID': energy_expenditure_Participant.iloc[0]['Participant_ID']}
     for i in range(54):
@@ -269,7 +269,7 @@ for Participant in energy_expenditure['Participant_ID']:
             new_row[f'Week {week}'] = score_value
 
     # Append the new row to the DataFrame
-    energy_expenditure_Participant = energy_expenditure_Participant.append(new_row, ignore_index=True)
+    energy_expenditure_Participant = pd.concat([energy_expenditure_Participant, pd.DataFrame([new_row])], ignore_index=True)
 
     energy_expenditure_Participant = energy_expenditure_Participant.iloc[:, 1:].dropna(axis=1).T
     energy_expenditure_Participant.columns = ['EE', 'Week', score]
