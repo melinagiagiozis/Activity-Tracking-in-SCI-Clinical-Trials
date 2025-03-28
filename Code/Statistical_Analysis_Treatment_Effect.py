@@ -209,7 +209,7 @@ variable_mapping = {
 summary_df["Variable"] = summary_df["Variable"].replace(variable_mapping)
 
 # Save the DataFrame to a CSV file
-summary_csv_path = os.path.join(directory, 'Results/MixedModel_Treatment_Effect.csv')
+summary_csv_path = os.path.join(directory, 'Results/Mixed_Model_Treatment_Effect.csv')
 summary_df.to_csv(summary_csv_path, index=False)
 
 if print_results:
@@ -438,7 +438,7 @@ for intensity in intensity_levels:
         print("\n")
 
 # Save the DataFrame to a CSV file
-summary_csv_path = os.path.join(directory, f'Results/Regression_Intensity_Trends.csv')
+summary_csv_path = os.path.join(directory, f'Results/Regression_Model_Intensity_Trends.csv')
 summary_df = pd.DataFrame(summary_df)
 summary_df.to_csv(summary_csv_path, index=False)
-print('Regression results saved to Results/Regression_Intensity_Trends.csv')
+print('Regression results saved to Results/Regression_Model_Intensity_Trends.csv')

@@ -291,7 +291,7 @@ for group, group_name in zip(completeness_groups, completeness_groups_names):
     summary_df["Variable"] = summary_df["Variable"].replace(variable_mapping)
 
     # Save the DataFrame to a CSV file
-    summary_csv_path = os.path.join(directory, f'Results/MixedModel_{group_name.capitalize()}.csv')
+    summary_csv_path = os.path.join(directory, f'Results/Mixed_Model_{group_name.capitalize()}.csv')
     summary_df.to_csv(summary_csv_path, index=False)
 
     if print_results:
