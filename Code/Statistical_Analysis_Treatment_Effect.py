@@ -396,7 +396,7 @@ plt.grid()
 plt.ylim(-5, 105)
 plt.xlim(-1, 31)
 plt.tight_layout(pad=2.0)
-plt.savefig(directory + '/Figures/Intensities_Treatment_Effect.png', dpi=300)
+plt.savefig(directory + '/Figures/Intensity_Treatment_Effect.png', dpi=300)
 plt.close()
 
 
