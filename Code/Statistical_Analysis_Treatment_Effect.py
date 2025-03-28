@@ -99,7 +99,7 @@ plt.xticks(fontsize=14)
 plt.yticks(fontsize=14)
 plt.legend(fontsize=14)
 plt.grid(alpha=0.3)
-plt.savefig(directory + '/Figures/Trends_Treatment_Effect.png', dpi=300)
+plt.savefig(directory + '/Figures/EE_Trends_Treatment_Effect.png', dpi=300)
 plt.close()
 
 

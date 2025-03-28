@@ -107,7 +107,7 @@ plt.legend()
 plt.grid()
 
 # Save the plot
-plt.savefig(directory + '/Figures/Trends_Injury_Completeness.png', dpi=300)
+plt.savefig(directory + '/Figures/EE_Trends_Injury_Completeness.png', dpi=300)
 plt.close()
 
 
@@ -169,7 +169,7 @@ for group, group_name in zip(completeness_groups, completeness_groups_names):
     plt.grid()
         
     # Save the plot
-    plt.savefig(f'{directory}/Figures/Trends_{group_name.capitalize()}.png', dpi=300)
+    plt.savefig(f'{directory}/Figures/EE_Trends_{group_name.capitalize()}.png', dpi=300)
     plt.close()
 
     

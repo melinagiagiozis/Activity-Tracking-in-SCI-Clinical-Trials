@@ -128,7 +128,7 @@ plt.yticks(fontsize=12)
 plt.xlim(0, len(week_numbers) - 1)
 plt.legend(loc='upper left', fontsize=12)
 plt.tight_layout()
-plt.savefig(directory + '/Figures/Trends.png', dpi=300)
+plt.savefig(directory + '/Figures/EE_Trends.png', dpi=300)
 plt.close()
 
 
