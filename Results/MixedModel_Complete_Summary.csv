@@ -1,20 +1,20 @@
 Variable,Coefficient,Standard Error,p-value,Confidence Interval Lower Bound,Confidence Interval Upper Bound
-Baseline (Intercept),34.74,7.26,0.0,20.5,48.98
-Treatment Group (Verum),-0.76,1.44,0.598,-3.59,2.07
-Site: Heidelberg,-3.4,1.86,0.067,-7.04,0.24
-Site: Zurich,-1.42,1.98,0.473,-5.3,2.46
-NLI: C3,-6.34,2.18,0.004,-10.61,-2.06
-NLI: C4,-2.21,2.4,0.358,-6.92,2.5
-NLI: C5,0.45,2.94,0.879,-5.31,6.21
-NLI: C6,-1.14,2.28,0.615,-5.61,3.32
-NLI: C7,-0.17,2.74,0.949,-5.54,5.19
-Time (Week),4.91,1.47,0.001,2.03,7.79
-Interaction: Week x Treatment Group,0.07,2.11,0.973,-4.07,4.22
-First measured EE,0.31,0.07,0.0,0.17,0.46
-Age at Injury,0.23,0.16,0.158,-0.09,0.54
-"Sex (Male=1, Female=0)",-1.27,3.23,0.694,-7.6,5.06
-Number of Measurements,-0.31,0.28,0.278,-0.86,0.25
-Week of first measured EE,-1.73,0.49,0.0,-2.69,-0.77
-Patient-Specific Variability,0.09,0.03,0.001,0.04,0.14
-Covariance: Intercept and Week,-0.01,0.05,0.856,-0.11,0.09
-Patient-Specific Slope Variability,0.54,,,,
+Baseline (Intercept),47.83,5.15,0.0,37.74,57.92
+Treatment Group (Verum),-1.43,2.3,0.535,-5.93,3.08
+Site: Heidelberg,-0.33,1.15,0.771,-2.58,1.91
+Site: Zurich,0.95,1.18,0.42,-1.36,3.25
+NLI: C3,-0.91,1.43,0.526,-3.72,1.9
+NLI: C4,-0.31,1.47,0.835,-3.19,2.58
+NLI: C5,-0.67,1.94,0.73,-4.47,3.13
+NLI: C6,1.01,1.4,0.473,-1.74,3.75
+NLI: C7,0.4,1.91,0.832,-3.33,4.14
+Time (Week),4.97,0.09,0.0,4.8,5.14
+Interaction: Week x Treatment Group,0.05,0.12,0.681,-0.19,0.29
+First measured EE,0.02,0.05,0.633,-0.08,0.13
+Age at Injury,0.07,0.1,0.445,-0.11,0.26
+"Sex (Male=1, Female=0)",-0.46,1.94,0.812,-4.26,3.34
+Number of Measurements,-0.03,0.2,0.898,-0.41,0.36
+Week of first measured EE,-0.32,0.32,0.32,-0.95,0.31
+Patient-Specific Variability,0.37,0.11,0.001,0.14,0.59
+Covariance: Intercept and Week,-0.02,0.01,0.001,-0.03,-0.01
+Patient-Specific Slope Variability,0.0,0.0,0.0,0.0,0.0
