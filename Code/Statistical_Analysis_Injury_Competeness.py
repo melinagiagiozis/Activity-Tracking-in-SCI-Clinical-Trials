@@ -15,12 +15,17 @@ print_results = False
 directory = os.getcwd()
 
 # Energy expenditure
-csv_file_path = os.path.join(directory, 'SimulatedData/SimulatedEnergyExpenditure.csv')
+csv_file_path = os.path.join(directory, 'Data/Simulated_Energy_Expenditure_Data.csv')
 energy_expenditure = pd.read_csv(csv_file_path)  
 
 # Clinical data
-csv_file_path = os.path.join(directory, 'SimulatedData/SimulatedClinicalData.csv')
-clinical_data = pd.read_csv(csv_file_path) 
+csv_file_path = os.path.join(directory, 'Data/Simulated_Clinical_Data.csv')
+clinical_data = pd.read_csv(csv_file_path)
+
+# Treatment key
+csv_file_path = os.path.join(directory, 'Data/Simulated_Treatment_Key.csv')
+treatment_key = pd.read_csv(csv_file_path)
+
 
 
 
@@ -28,19 +33,17 @@ clinical_data = pd.read_csv(csv_file_path)
 
 
 
-# Set a seed for reproducibility
-random.seed(42)
+# Assign participants to placebo and verum groups based on the Treatment column
+verum = treatment_key[treatment_key['Treatment'] == 'Nogo-A Inhibitor']['Participant_ID'].tolist()
+placebo = treatment_key[treatment_key['Treatment'] == 'placebo']['Participant_ID'].tolist()
 
-# Generate the list of participants from the data
-participants = energy_expenditure.iloc[:, 0].tolist()
+# Keep only the first AIS entry per Participant_ID
+clinical_data_first = clinical_data.drop_duplicates(subset='Participant_ID', keep='first')
 
-# Randomly select 28 participants for placebo and verum
-placebo = random.sample(participants, 28)
-verum = [participant for participant in participants if participant not in placebo]
+# Assign participants to completeness groups based on AIS
+complete = clinical_data_first[clinical_data_first['AIS'].isin(['A', 'B'])]['Participant_ID'].tolist()
+incomplete = clinical_data_first[clinical_data_first['AIS'].isin(['C', 'D'])]['Participant_ID'].tolist()
 
-# Randomly select 11 participants placebo and 17 verum Participants as complete
-complete = random.sample(placebo, 11) + random.sample(verum, 17)
-incomplete = [participant for participant in participants if participant not in complete]
 completeness_groups = [complete, incomplete]
 completeness_groups_names = ['complete', 'incomplete']
 
@@ -177,6 +180,9 @@ for group, group_name in zip(completeness_groups, completeness_groups_names):
     data = pd.melt(energy_expenditure, id_vars=['Participant_ID'],
                    value_vars=['Week ' + str(i) for i in range(len(energy_expenditure.iloc[0, :])-1)],
                    var_name='Week', value_name='Energy_Expenditure')
+    
+    # Filter data to only include participants in the current completeness group
+    data = data[data['Participant_ID'].isin(group)]
 
     # Convert 'Week' to a numeric value indicating the week number
     data['Week'] = data['Week'].str.extract('(\d+)').astype(int)
@@ -186,7 +192,7 @@ for group, group_name in zip(completeness_groups, completeness_groups_names):
 
     data = data.dropna(axis=0)
 
-    data = pd.merge(data, clinical_data[['Participant_ID', 'Age_at_Injury', 'Sex', 'Site']], 
+    data = pd.merge(data, clinical_data[['Participant_ID', 'Age', 'Sex', 'Site', 'NLI']], 
                         on='Participant_ID', how='left')
 
     # Correct for sex
@@ -223,7 +229,7 @@ for group, group_name in zip(completeness_groups, completeness_groups_names):
 
     # Fit the mixed-effects model (with site and age as effect)
     model = smf.mixedlm('Energy_Expenditure ~ Week * Treatment_Group + First_Measurement + Site'
-                        '+ Age_at_Injury + Sex + Measurement_Count + First_Measurement_Week', 
+                        '+ Age + Sex + NLI+ Measurement_Count + First_Measurement_Week', 
                         data=data, 
                         groups=data['Participant_ID'], 
                         re_formula='~Week')
@@ -242,13 +248,47 @@ for group, group_name in zip(completeness_groups, completeness_groups_names):
 
     # Extract relevant statistics into a DataFrame
     summary_df = pd.DataFrame({
-        'Parameter': result.params.index,
-        'Coefficient': result.params.values,
-        'Standard Error': result.bse.values,
-        'p-value': result.pvalues.values,
-        'Confidence Interval Lower': result.conf_int().iloc[:, 0],
-        'Confidence Interval Upper': result.conf_int().iloc[:, 1]
+        'Variable': result.params.index,
+        'Coefficient': np.round(result.params.values, decimals=2),
+        'Standard Error': np.round(result.bse.values, decimals=2),
+        'p-value': np.round(result.pvalues.values, decimals=3),
+        'Confidence Interval Lower Bound': np.round(result.conf_int().iloc[:, 0].values, decimals=2),
+        'Confidence Interval Upper Bound': np.round(result.conf_int().iloc[:, 1].values, decimals=2)
     })
+
+    variable_mapping = {
+        "Intercept": "Baseline (Intercept)",
+        "Treatment_Group[T.Verum]": "Treatment Group (Verum)",
+        'Site[T.Barcelona]': "Site: Barcelona",
+        'Site[T.Basel]': "Site: Basel",
+        'Site[T.Heidelberg]': "Site: Heidelberg",
+        'Site[T.Hessisch Lichtenau]': "Site: Hessisch Lichtenau",
+        'Site[T.Murnau]': "Site: Murnau",
+        'Site[T.Nottwil]': "Site: Nottwil",
+        'Site[T.Prague]': "Site: Prague",
+        'Site[T.Tübingen]': "Site: Tübingen",
+        'Site[T.Zurich]': "Site: Zurich",
+        "NLI[T.C2]": "NLI: C2",
+        "NLI[T.C3]": "NLI: C3",
+        "NLI[T.C4]": "NLI: C4",
+        "NLI[T.C5]": "NLI: C5",
+        "NLI[T.C6]": "NLI: C6",
+        "NLI[T.C7]": "NLI: C7",
+        "NLI[T.INT]": "NLI: no NLI",
+        "Week": "Time (Week)",
+        "Week:Treatment_Group[T.Verum]": "Interaction: Week x Treatment Group",
+        "Age": "Age at Injury",
+        "Sex": "Sex (Male=1, Female=0)",
+        "Measurement_Count": "Number of Measurements",
+        "First_Measurement": "First measured EE",
+        "First_Measurement_Week": "Week of first measured EE",
+        "Group Var": "Patient-Specific Variability",
+        "Group x Week Cov": "Covariance: Intercept and Week",
+        "Week Var": "Patient-Specific Slope Variability"
+    }
+
+    # Apply renaming to the DataFrame
+    summary_df["Variable"] = summary_df["Variable"].replace(variable_mapping)
 
     # Save the DataFrame to a CSV file
     summary_csv_path = os.path.join(directory, f'Results/MixedModel_{group_name.capitalize()}_Summary.csv')

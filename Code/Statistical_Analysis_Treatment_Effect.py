@@ -18,16 +18,20 @@ print_results = False
 directory = os.getcwd()
 
 # Energy expenditure
-csv_file_path = os.path.join(directory, 'SimulatedData/SimulatedEnergyExpenditure.csv')
+csv_file_path = os.path.join(directory, 'Data/Simulated_Energy_Expenditure_Data.csv')
 energy_expenditure = pd.read_csv(csv_file_path)  
 
 # Clinical data
-csv_file_path = os.path.join(directory, 'SimulatedData/SimulatedClinicalData.csv')
+csv_file_path = os.path.join(directory, 'Data/Simulated_Clinical_Data.csv')
 clinical_data = pd.read_csv(csv_file_path) 
 
 # Activity intensity data
-csv_file_path = os.path.join(directory, 'SimulatedData/SimulatedIntensityData.csv')
+csv_file_path = os.path.join(directory, 'Data/Simulated_Intensity_Data.csv')
 intensity_data = pd.read_csv(csv_file_path)
+
+# Treatment key
+csv_file_path = os.path.join(directory, 'Data/Simulated_Treatment_Key.csv')
+treatment_key = pd.read_csv(csv_file_path)
 
 
 
@@ -35,15 +39,9 @@ intensity_data = pd.read_csv(csv_file_path)
 
 
 
-# Set a seed for reproducibility
-random.seed(42)
-
-# Generate the list of participants from the data
-participants = energy_expenditure.iloc[:, 0].tolist()
-
-# Randomly select 28 participants for placebo and verum
-placebo = random.sample(participants, 28)
-verum = [participant for participant in participants if participant not in placebo]
+# Assign participants to placebo and verum groups based on the Treatment column
+verum = treatment_key[treatment_key['Treatment'] == 'Nogo-A Inhibitor']['Participant_ID'].tolist()
+placebo = treatment_key[treatment_key['Treatment'] == 'placebo']['Participant_ID'].tolist()
 
 # Prepare lists to store trends
 slopes_placebo, intercepts_placebo = [], []
@@ -122,7 +120,7 @@ data['Treatment_Group'] = data['Participant_ID'].apply(lambda x: 'Placebo' if x 
 
 data = data.dropna(axis=0)
 
-data = pd.merge(data, clinical_data[['Participant_ID', 'Age_at_Injury', 'Sex', 'Site']], 
+data = pd.merge(data, clinical_data[['Participant_ID', 'Age', 'Sex', 'Site', 'NLI']], 
                        on='Participant_ID', how='left')
 
 # Correct for sex
@@ -159,7 +157,7 @@ warnings.simplefilter("ignore", ConvergenceWarning)
 
 # Fit the mixed-effects model (with site and age as effects)
 model = smf.mixedlm('Energy_Expenditure ~ Week * Treatment_Group + First_Measurement + Site'
-                    '+ Age_at_Injury + Sex + Measurement_Count + First_Measurement_Week', 
+                    '+ Age + Sex + NLI + Measurement_Count + First_Measurement_Week', 
                     data=data, 
                     groups=data['Participant_ID'], 
                     re_formula='~Week')
@@ -168,13 +166,47 @@ result = model.fit()
 
 # Extract relevant statistics into a DataFrame
 summary_df = pd.DataFrame({
-    'Parameter': result.params.index,
-    'Coefficient': result.params.values,
-    'Standard Error': result.bse.values,
-    'p-value': result.pvalues.values,
-    'Confidence Interval Lower': result.conf_int().iloc[:, 0],
-    'Confidence Interval Upper': result.conf_int().iloc[:, 1]
+    'Variable': result.params.index,
+    'Coefficient': np.round(result.params.values, decimals=2),
+    'Standard Error': np.round(result.bse.values, decimals=2),
+    'p-value': np.round(result.pvalues.values, decimals=3),
+    'Confidence Interval Lower Bound': np.round(result.conf_int().iloc[:, 0].values, decimals=2),
+    'Confidence Interval Upper Bound': np.round(result.conf_int().iloc[:, 1].values, decimals=2)
 })
+
+variable_mapping = {
+    "Intercept": "Baseline (Intercept)",
+    "Treatment_Group[T.Verum]": "Treatment Group (Verum)",
+    'Site[T.BCA]': "Site: Barcelona",
+    'Site[T.BSL]': "Site: Basel",
+    'Site[T.HDG]': "Site: Heidelberg",
+    'Site[T.HLU]': "Site: Hessisch-Lichtenau",
+    'Site[T.MNU]': "Site: Murnau",
+    'Site[T.NTL]': "Site: Nottwil",
+    'Site[T.PRG]': "Site: Prague",
+    'Site[T.TIN]': "Site: Tübingen",
+    'Site[T.ZRH]': "Site: Zurich",
+    "NLI[T.C2]": "NLI: C2",
+    "NLI[T.C3]": "NLI: C3",
+    "NLI[T.C4]": "NLI: C4",
+    "NLI[T.C5]": "NLI: C5",
+    "NLI[T.C6]": "NLI: C6",
+    "NLI[T.C7]": "NLI: C7",
+    "NLI[T.INT]": "NLI: no NLI",
+    "Week": "Time (Week)",
+    "Week:Treatment_Group[T.Verum]": "Interaction: Week x Treatment Group",
+    "Age": "Age at Injury",
+    "Sex": "Sex (Male=1, Female=0)",
+    "Measurement_Count": "Number of Measurements",
+    "First_Measurement": "First measured EE",
+    "First_Measurement_Week": "Week of first measured EE",
+    "Group Var": "Patient-Specific Variability",
+    "Group x Week Cov": "Covariance: Intercept and Week",
+    "Week Var": "Patient-Specific Slope Variability"
+}
+
+# Apply renaming to the DataFrame
+summary_df["Variable"] = summary_df["Variable"].replace(variable_mapping)
 
 # Save the DataFrame to a CSV file
 summary_csv_path = os.path.join(directory, 'Results/MixedModel_Treatment_Effect_Summary.csv')
@@ -182,7 +214,7 @@ summary_df.to_csv(summary_csv_path, index=False)
 
 if print_results:
     print('------- Mixed Linear Model -------')
-    print(f'Model results saved to {summary_csv_path}')
+    print(f'Model results saved to Results/{summary_csv_path}')
 
 # For later analysis of UEMS
 data_all_participants = data
@@ -201,15 +233,6 @@ if print_results:
 
 # Limit to study duration (30 weeks)
 data = intensity_data.iloc[:, :33]
-
-# Separate first two columns
-first_two_columns = data.iloc[:, :2]  # Select first two columns
-
-# Convert minutes to percentage of the day
-converted_data = data.iloc[:, 2:].astype(float).apply(lambda x: (x / 1440) * 100)
-
-# Recombine the first two columns with the converted data
-data = pd.concat([first_two_columns, converted_data], axis=1)
 
 # Intensities: Sedentary activities (SED), Light Physical Activity (LPA (MPA), Vigorous Physical Activity (VPA)
 intensity_levels = ['REST', 'SED', 'LPA', 'MPA', 'VPA']
@@ -411,11 +434,11 @@ for intensity in intensity_levels:
                     f"slope = {np.round(slope, decimals=1)}, "
                     f"95% CI [{np.round(ci_lower, decimals=1)}, {np.round(ci_upper, decimals=1)}], "
                     f"p {'<0.001' if p_value < 0.001 else np.round(p_value, 3)}")
-        print(f'Model results saved to {summary_csv_path}')
+        print(f'Model results saved to Results/{summary_csv_path}')
         print("\n")
 
 # Save the DataFrame to a CSV file
-summary_csv_path = os.path.join(directory, f'Results/Regression_Results_Intensity_Trends.csv')
+summary_csv_path = os.path.join(directory, f'Results/Regression_Intensity_Trends.csv')
 summary_df = pd.DataFrame(summary_df)
 summary_df.to_csv(summary_csv_path, index=False)
-print('Regression results saved to Regression_Results_Intensity_Trends.csv')
+print('Regression results saved to Results/Regression_Intensity_Trends.csv')
