@@ -209,7 +209,7 @@ variable_mapping = {
 summary_df["Variable"] = summary_df["Variable"].replace(variable_mapping)
 
 # Save the DataFrame to a CSV file
-summary_csv_path = os.path.join(directory, 'Results/MixedModel_Treatment_Effect_Summary.csv')
+summary_csv_path = os.path.join(directory, 'Results/MixedModel_Treatment_Effect.csv')
 summary_df.to_csv(summary_csv_path, index=False)
 
 if print_results:
